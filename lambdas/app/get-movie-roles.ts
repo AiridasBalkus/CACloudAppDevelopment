@@ -3,6 +3,7 @@ import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import {
   ddb,
   isRoleItem,
+  isMovieItem,
   movieKey,
   parseId,
   tableName,
@@ -21,7 +22,7 @@ export const handler = async (
     return response(400, { message: "movieID must be a positive integer" });
   }
 
-   const actorParam = event.queryStringParameters?.actor;
+  const actorParam = event.queryStringParameters?.actor;
   const actorId = parseId(actorParam);
   if (actorParam !== undefined && actorId === undefined) {
     return response(400, { message: "actor must be a positive integer" });
@@ -35,11 +36,21 @@ export const handler = async (
         ExpressionAttributeValues: { ":pk": movieKey(movieId) },
       })
     );
+    const items = queryResult.Items ?? [];
+    if(!items.some(isMovieItem)) {
+      return response(404, { message: `Movie ${movieId} not found` });
+    }
 
     const roles = (queryResult.Items ?? []).filter(isRoleItem).map(toRole);
-    const matchingRoles = actorId === undefined ? roles : roles.filter((role) => role.actorId === actorId);
-
-    return response(200, { data: matchingRoles });
+    if(actorId === undefined){
+      return response(200, { data: roles });
+    }
+    // const matchingRoles = actorId === undefined ? roles : roles.filter((role) => role.actorId === actorId);
+    const actorRoles = roles.filter((role) => role.actorId === actorId);
+    if(actorRoles.length === 0) {
+      return response(404, { message: `Actor ${actorId} not found in movie ${movieId}` });
+    }
+    return response(200, { data: actorRoles });
   } catch (err) {
     console.error("DynamoDB error:", err);
     return response(500, {
