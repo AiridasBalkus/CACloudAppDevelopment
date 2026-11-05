@@ -48,7 +48,7 @@ export class AppApiStack extends cdk.Stack {
       CLIENT_ID: props.userPoolClient.userPoolClientId,
     });
 
-    table.grantReadData(getMovieRolesFn);
+    table.grantReadWriteData(addMovieRoleFn);
     table.grantReadData(getActorFn);
 
     // Sample data, written once when the stack is created.
@@ -95,7 +95,12 @@ export class AppApiStack extends cdk.Stack {
     const moviesResource = api.root.addResource('movies');
 
     const movieRolesResource = moviesResource.addResource('{movieID}').addResource('roles');
-    movieRolesResource.addMethod('GET', new apig.LambdaIntegration(getMovieRolesFn) );
+    movieRolesResource.addMethod('GET', new apig.LambdaIntegration(getMovieRolesFn), userAuth);
+
+    moviesResource
+      .addResource('roles')
+      .addMethod('POST', new apig.LambdaIntegration(addMovieRoleFn));
+
 
     api.root
       .addResource('actors')
