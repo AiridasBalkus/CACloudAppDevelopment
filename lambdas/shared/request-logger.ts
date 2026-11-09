@@ -5,7 +5,9 @@ import type { APIGatewayProxyEvent } from 'aws-lambda';
 export const logRequest = (event: APIGatewayProxyEvent): void => {
   // TODO - The authorizer lambda adds relevant info to the event object's context.  )
     // The authorizer lambda passes the verified Cognito username in the request context.
-  const username = event.requestContext.authorizer?.username ?? 'anonymous';
+   const username =
+    event.requestContext.authorizer?.username ??
+    (event.requestContext.identity?.apiKey ? 'admin' : 'anonymous');
   const params = Object.entries(event.queryStringParameters ?? {}).filter(
     (entry): entry is [string, string] => entry[1] !== undefined,
   );
