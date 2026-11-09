@@ -47,7 +47,8 @@ export class AppApiStack extends cdk.Stack {
       USER_POOL_ID: props.userPool.userPoolId,
       CLIENT_ID: props.userPoolClient.userPoolClientId,
     });
-
+    
+    table.grantReadData(getMovieRolesFn);
     table.grantReadWriteData(addMovieRoleFn);
     table.grantReadData(getActorFn);
 
