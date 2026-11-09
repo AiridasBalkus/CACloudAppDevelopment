@@ -41,11 +41,10 @@ export const handler = async (
       return response(404, { message: `Movie ${movieId} not found` });
     }
 
-    const roles = (queryResult.Items ?? []).filter(isRoleItem).map(toRole);
+    const roles = (items ?? []).filter(isRoleItem).map(toRole);
     if(actorId === undefined){
       return response(200, { data: roles });
     }
-    // const matchingRoles = actorId === undefined ? roles : roles.filter((role) => role.actorId === actorId);
     const actorRoles = roles.filter((role) => role.actorId === actorId);
     if(actorRoles.length === 0) {
       return response(404, { message: `Actor ${actorId} not found in movie ${movieId}` });
